@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-canvas: #0a0b0d;
+  --color-panel: #18181b;
+  --color-line: #27272a;
+  --color-breach-from: #ff3b3b;
+  --color-breach-to: #ff8a00;
+  --color-safe: #10e080;
+  --color-brand-from: #6366f1;
+  --color-brand-to: #a855f7;
+
+  --color-risk-low: #34d399;
+  --color-risk-medium: #fbbf24;
+  --color-risk-high: #fb923c;
+  --color-risk-critical: #ef4444;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: #fafafa;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-brand-from) 40%, transparent);
+}
+
+@keyframes grid-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 48px 48px;
+  }
+}
+
+@keyframes scanline {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes breach-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-breach-from) 50%, transparent),
+      0 0 0 0 transparent;
+  }
+  35% {
+    box-shadow:
+      0 0 0 1px var(--color-breach-from),
+      0 0 28px 4px color-mix(in srgb, var(--color-breach-from) 45%, transparent);
+  }
+  70% {
+    box-shadow:
+      0 0 0 1px var(--color-breach-to),
+      0 0 36px 6px color-mix(in srgb, var(--color-breach-to) 35%, transparent);
+  }
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: grid-drift 28s linear infinite;
+}
+
+.scanline {
+  animation: scanline 9s linear infinite;
+}
+
+.shimmer {
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+.breach-pulse {
+  animation: breach-pulse 0.9s ease-out 2;
+}
+
+.glass {
+  background: rgb(24 24 27 / 0.72);
+  border: 1px solid rgb(39 39 42 / 0.9);
+  backdrop-filter: blur(16px);
+}
+
+.brand-gradient {
+  background-image: linear-gradient(135deg, var(--color-brand-from), var(--color-brand-to));
+}
+
+.breach-gradient {
+  background-image: linear-gradient(135deg, var(--color-breach-from), var(--color-breach-to));
+}
+
+.text-brand-gradient {
+  background-image: linear-gradient(135deg, var(--color-brand-from), var(--color-brand-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-breach-gradient {
+  background-image: linear-gradient(90deg, var(--color-breach-from), var(--color-breach-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #3f3f46 transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 999px;
+}
