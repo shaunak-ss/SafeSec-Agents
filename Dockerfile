@@ -1,33 +1,36 @@
-# SafeSec Agents — frontend
+# SafeSec Agents — backend
 #
-# Static build served by nginx. VITE_* env vars are baked in at *build*
-# time (Vite has no server-side runtime), so pass them as --build-arg if
-# they differ from the defaults baked into .env.production / .env.example.
+# Production image for the FastAPI service. Note the final image is a few
+# GB because `sentence-transformers` pulls in a CPU build of torch for the
+# local judge-cache embeddings — that's expected, not a mistake.
 #
 # Build:
-#   docker build -t safesec-agents-frontend \
-#     --build-arg VITE_API_BASE_URL=https://api.example.com \
-#     --build-arg VITE_USE_MOCK=false .
+#   docker build -t safesec-agents-backend .
 # Run:
-#   docker run --rm -p 8080:80 safesec-agents-frontend
+#   docker run --rm -p 8000:8000 --env-file .env safesec-agents-backend
 
-FROM node:20-slim AS build
+FROM python:3.11-slim
+
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+# Keep Python from writing .pyc files / buffering stdout, and skip pip's
+# version-check network call on every invocation.
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PORT=8000
+
+# libgomp1 is required at runtime by torch's CPU backend.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ARG VITE_API_BASE_URL=http://localhost:8000
-ARG VITE_USE_MOCK=false
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
-    VITE_USE_MOCK=$VITE_USE_MOCK
-
-RUN npm run build
-
-FROM nginx:1.27-alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-EXPOSE 80
+# Cloud Run / most PaaS providers inject $PORT at runtime; Render/Fly/Railway
+# all respect this convention too.
+EXPOSE 8000
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
